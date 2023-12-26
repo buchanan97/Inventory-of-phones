@@ -1,0 +1,75 @@
+import csv
+import openpyxl
+
+class Smartphone: #phone inventory data
+    discount = 0.50  # Class-level discount percentage
+
+    def __init__(self, Model, price, tax=10, delivery_fees=12.90): 
+        assert tax >= 10
+        assert delivery_fees >= 12.90
+        self.Model = Model
+        self.price = price
+        self.tax = tax
+        self.delivery_fees = delivery_fees
+
+    def calculate_total_price(self): #calculation of total price operator
+        return self.price + self.tax + self.delivery_fees
+
+    def apply_discount(self): #dicsount operator
+        self.price *= (1 - self.discount) #The 1 represents the full price (100%).
+#Subtracting the discount percentage (self.discount) from 1 gives you the percentage of the price that should remain after the discount.
+#Multiplying the original price by this remaining percentage effectively applies the discount.
+
+class PhoneStore: #phone store class holder
+    def __init__(self, filename):
+        self.phones = self._read_phones_from_excel(filename)
+
+    def _read_phones_from_excel(self, filename):
+        workbook = openpyxl.load_workbook(filename=filename) #openpyxl provides the tools to open and interact with Excel files in Python.
+        sheet = workbook.active
+
+        phones = []
+        for row in sheet.iter_rows(min_row=2): #iter_rows enables efficient row-by-row processing of worksheet data.
+            Model = row[1].value
+            price = float(row[3].value)
+            phones.append(Smartphone(Model, price))
+        return phones
+
+    def find_phone(self, Model): #runs a for loop through the excel spreadsheet to see the specific model phone
+        for phone in self.phones:
+            if phone.Model == Model:
+                return phone
+        return None
+
+    def process_purchase(self): #user's input 
+        phone_choice = input("Enter the name of the phone you want: ")
+        user_age = int(input("Enter your age: "))
+
+        selected_phone = self.find_phone(phone_choice)
+
+        if selected_phone: #phone conditional operator
+            if user_age < 35:
+                discount_code = input("Enter your discount code: ")
+                if discount_code == "1738":  # Replace with actual code
+                    selected_phone.apply_discount()
+                    print("Discount applied!")
+                else:
+                    print("Invalid discount code.")
+            else:
+                apply_discount = input("Do you have a discount code? (y/n): ")
+                if apply_discount.lower() == 'y':
+                    discount_code = input("Enter your discount code: ")
+                    if discount_code == "1738":  # Replace with actual code
+                        selected_phone.apply_discount()
+                        print("Discount applied!")
+                    else:
+                        print("Invalid discount code.")
+
+            total_price = selected_phone.calculate_total_price()
+            print("Total price for", selected_phone.Model, ":", total_price)
+        else:
+            print("Phone not found.")
+
+# Create a PhoneStore instance with the corrected file path
+store = PhoneStore(r"C:\Users\scorp\OneDrive\Documents\python 2022-2023 projects and guides\speadsheet for personal projects and practice oop\smartphones.xlsx")
+store.process_purchase()
